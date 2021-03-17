@@ -34,7 +34,7 @@ const scrapingProfile = async () => {
       oldScrollY = currentScrollY;
     }
 
-    console.log(`Scroll finalizado:  ${exits}`);
+    console.log(`Scroll end:  ${exits}`);
 
     return new Promise((res) => {
       res();
@@ -55,19 +55,29 @@ const scrapingProfile = async () => {
   const ubication = elementUbication ? elementUbication.innerText : "";
 
   await wait(2000);
+
   const elementMoreResume = document.getElementById(
     "line-clamp-show-more-button"
   );
+
   if (elementMoreResume) elementMoreResume.click();
+
   const elementResume = document.querySelector("section.pv-about-section > p");
   const resume = elementResume ? elementResume.innerText : "";
+
   await autoscrollToElement("body");
 
   // Para obtener la experiencia :
+
+  // boton cargar mas info experiencia
+  const buttonMoreExp = document.querySelectorAll(
+    ".pv-profile-section-pager section.experience-section  ul li.pv-profile-section__list-item button.pv-profile-section__see-more-inline"
+  );
+  if (buttonMoreExp) buttonMoreExp.forEach((e) => e.click());
+
   const elementExperience = document.querySelectorAll(
     ".pv-profile-section-pager section.experience-section  ul li.pv-profile-section__list-item div.pv-entity__summary-info"
   );
-
   const experience = elementExperience
     ? Array.from(elementExperience).map((e) => {
         return {
@@ -78,24 +88,123 @@ const scrapingProfile = async () => {
       })
     : "";
 
-  const elementEducation = document.querySelectorAll(
-    ".pv-profile-section-pager section.education-section  ul li.pv-profile-section__list-item div.pv-entity__summary-info"
+  // Para el segundo formato de experiencia
+  const elementCompany = document.querySelectorAll(
+    ".pv-profile-section-pager section.experience-section  ul li.pv-profile-section__list-item div.pv-entity__company-summary-info h3"
+  );
+  const companies = elementCompany
+    ? Array.from(elementCompany).map((e) => {
+        return e.children[1].innerText;
+      })
+    : [];
+
+  const elementCompanyDate = document.querySelectorAll(
+    ".pv-profile-section-pager section.experience-section  ul li.pv-profile-section__list-item div.pv-entity__company-summary-info h4"
+  );
+  const companiesDate = elementCompanyDate
+    ? Array.from(elementCompanyDate).map((e) => {
+        return e.children[1].innerText;
+      })
+    : [];
+
+  const elementWorksCompany = document.querySelectorAll(
+    ".pv-profile-section-pager section.experience-section  ul li.pv-profile-section__list-item ul.pv-entity__position-group.mt2"
   );
 
-  const education = elementEducation
-    ? Array.from(elementEducation).map((e) => {
-        let [carrera, ...grado] = Array.from(e.children[0].children).map(
-          (el) => el.innerText
-        );
-        let grados = Array.from(grado);
-
+  const worksCompany = elementWorksCompany
+    ? Array.from(elementWorksCompany).map((element, i) => {
+        let positionWork = Array.from(element.children).map((e) => {
+          let position =
+            e.children[0].children[0].children[1].children[0].children[0]
+              .children[0];
+          if (Array.from(position.children).length == 3) {
+            // Verificar la estructura de los nodos
+            return {
+              cargo: position.children[0].children[1].innerText,
+              periodo: position.children[1].children[1].children[1].innerText,
+              lugar: position.children[2].children[1].innerText,
+            };
+          } else {
+            return {
+              info: position.innerText,
+            };
+          }
+        });
         return {
-          centro_estudio: carrera,
-          nivel_estudio: grados,
-          periodo: e.children[1].innerText,
+          empresa: companies[i],
+          periodo: companiesDate[i],
+          cargos: positionWork,
         };
       })
     : "";
-  let personal = { name, title, resume, ubication };
-  console.log({ personal, experience, education });
+
+  const allExperience = [...experience, ...worksCompany];
+
+  // Para obtener datos de educacion :
+  const buttonMoreEducation = document.querySelectorAll(
+    ".pv-profile-section-pager section.education-section  button.pv-profile-section__see-more-inline"
+  );
+  if (buttonMoreEducation) buttonMoreEducation.forEach((e) => e.click());
+
+  const elementEducation = document.querySelectorAll(
+    ".pv-profile-section-pager section.education-section  ul li.pv-profile-section__list-item div.pv-entity__summary-info"
+  );
+  const education = elementEducation
+    ? Array.from(elementEducation).map((e) => {
+        let [carer, ...grade] = Array.from(e.children[0].children).map(
+          (el) => el.innerText
+        );
+        let grades = Array.from(grade);
+
+        return {
+          centro_estudio: carer,
+          nivel_estudio: grades,
+          periodo: e.children[1] ? e.children[1].innerText : "",
+        };
+      })
+    : "";
+
+  // Para obtener informacion de Contacto
+  const elementContactInfo = document.querySelector(
+    "div.ph5.pb5 > div.display-flex.mt2 ul.pv-top-card--list-bullet.mt1 a.ember-view"
+  );
+
+  if (elementContactInfo) elementContactInfo.click();
+
+  await wait(2000);
+
+  const elementLinkedinUrl = document.querySelector(
+    "div.artdeco-modal div.artdeco-modal__content section.pv-profile-section section.ci-vanity-url a"
+  );
+  const linkedinUrl = elementLinkedinUrl ? elementLinkedinUrl.innerText : "";
+
+  const elementEmailContact = document.querySelector(
+    "div.artdeco-modal div.artdeco-modal__content section.pv-profile-section section.ci-email a"
+  );
+  const emailContact = elementEmailContact ? elementEmailContact.innerText : "";
+
+  let personal = {
+    name,
+    title,
+    resume,
+    ubication,
+    contact: { email: emailContact, linkedin: linkedinUrl },
+  };
+
+  console.log({ personal, experience: allExperience, education });
+
+  //Cerramos el modal
+  const close = document.querySelector(
+    "div.artdeco-modal > button.artdeco-modal__dismiss"
+  );
+  if (close) close.click();
 };
+
+// Para more info
+//"div.ph5.pb5 > div.display-flex.mt2 ul.pv-top-card--list-bullet.mt1 a.ember-view"
+
+// div.artdeco-modal div.artdeco-modal__content section.pv-profile-section section.ci-vanity-url a
+// div.artdeco-modal div.artdeco-modal__content section.pv-profile-section section.ci-email a
+// div.artdeco-modal > button.artdeco-modal__dismiss
+
+//".pv-profile-section-pager section.education-section  button.pv-profile-section__see-more-inline"
