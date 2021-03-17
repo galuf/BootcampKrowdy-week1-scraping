@@ -1,6 +1,6 @@
 # BootcampKrowdy-week1-scraping
 
-# Scraping via Chrome App
+## Scraping via Chrome App
 
 
 - Extraer informacion personal
