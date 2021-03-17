@@ -126,7 +126,7 @@ const scrapingProfile = async () => {
             };
           } else {
             return {
-              info: position.innerText,
+              info: position.innerText.split("\n"),
             };
           }
         });
@@ -191,6 +191,7 @@ const scrapingProfile = async () => {
     contact: { email: emailContact, linkedin: linkedinUrl },
   };
 
+  // Datos :
   console.log({ personal, experience: allExperience, education });
 
   //Cerramos el modal
@@ -199,12 +200,3 @@ const scrapingProfile = async () => {
   );
   if (close) close.click();
 };
-
-// Para more info
-//"div.ph5.pb5 > div.display-flex.mt2 ul.pv-top-card--list-bullet.mt1 a.ember-view"
-
-// div.artdeco-modal div.artdeco-modal__content section.pv-profile-section section.ci-vanity-url a
-// div.artdeco-modal div.artdeco-modal__content section.pv-profile-section section.ci-email a
-// div.artdeco-modal > button.artdeco-modal__dismiss
-
-//".pv-profile-section-pager section.education-section  button.pv-profile-section__see-more-inline"
